@@ -8,9 +8,13 @@ QUERIES = [
     'ux designer',
     'ui designer',
     'interaction designer',
-    'design intern',
-    'ux intern',
-    'product design intern',
+    'visual designer',
+    'frontend developer',
+    'software engineer',
+    'full stack',
+    'ux engineer',
+    'ui engineer',
+    'ui developer',
 ]
 
 SITES = ["linkedin", "indeed"]
