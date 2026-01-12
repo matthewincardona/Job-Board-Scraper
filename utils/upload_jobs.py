@@ -65,6 +65,7 @@ def transform_row(row):
         "id": row["id"],
         "title": row["title"],
         "company_name": row["company"],
+        "company_logo": row["company_logo"],
         "location": row["location"],
         "description_md": description,
         "job_url": row.get("job_url") or None,
@@ -73,10 +74,6 @@ def transform_row(row):
         # NEW JSON score fields (jsonb in Supabase)
         "role_scores": role_scores,
         "seniority_scores": seniority_scores,
-
-        # Shortcut string fields
-        "ux_category": row.get("ux_category") or None,
-        "seniority": row.get("seniority") or None,
 
         "date_posted": posted_at_str,
     }

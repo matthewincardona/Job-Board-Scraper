@@ -3,8 +3,9 @@ import requests
 import json
 from typing import List, Dict
 
-WORKER_URL = "http://127.0.0.1:8787/"
-BATCH_SIZE = 50
+WORKER_URL = "http://127.0.0.1:8787/"  # your Worker URL
+BATCH_SIZE = 10
+DESCRIPTION_WORD_LIMIT = 300  # truncate descriptions to ~300 words
 
 
 # -------------------------------------------
@@ -14,6 +15,16 @@ def choose_top_scoring(scores: Dict[str, float], fallback: str) -> str:
     if not scores:
         return fallback
     return max(scores.items(), key=lambda x: x[1])[0]
+
+
+# -------------------------------------------
+# Truncate job description
+# -------------------------------------------
+def truncate_description(text: str, limit: int = DESCRIPTION_WORD_LIMIT) -> str:
+    words = text.split()
+    if len(words) <= limit:
+        return text
+    return " ".join(words[:limit])
 
 
 # -------------------------------------------
@@ -27,6 +38,9 @@ def classify_jobs_ai(df: pd.DataFrame, batch_size: int = BATCH_SIZE, verbose=Tru
         if col not in df.columns:
             df[col] = ""
 
+    # Truncate descriptions to save neurons
+    df["description_trunc"] = df["description"].fillna("").apply(truncate_description)
+
     results: List[Dict] = []
     total_jobs = len(df)
 
@@ -35,16 +49,16 @@ def classify_jobs_ai(df: pd.DataFrame, batch_size: int = BATCH_SIZE, verbose=Tru
 
     # Loop through batches
     for start in range(0, total_jobs, batch_size):
-        end = start + batch_size
+        end = min(start + batch_size, total_jobs)
         batch = df.iloc[start:end]
 
         payload = [
-            {"title": row["title"], "description": row["description"]}
+            {"title": row["title"], "description": row["description_trunc"]}
             for _, row in batch.iterrows()
         ]
 
         try:
-            resp = requests.post(WORKER_URL, json={"jobs": payload}, timeout=60)
+            resp = requests.post(WORKER_URL, json={"jobs": payload}, timeout=10000)
             resp.raise_for_status()
             data = resp.json()
 
@@ -62,6 +76,9 @@ def classify_jobs_ai(df: pd.DataFrame, batch_size: int = BATCH_SIZE, verbose=Tru
                     "ux_category": choose_top_scoring(role_scores, "other"),
                     "seniority": choose_top_scoring(seniority_scores, "unknown"),
                 })
+
+            if verbose:
+                print(f"✓ Completed batch {start}-{end}")
 
         except Exception as e:
             print(f"⚠️ Batch {start}-{end} failed: {e}")
