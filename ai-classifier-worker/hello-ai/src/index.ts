@@ -16,57 +16,40 @@ export default {
 			const systemPrompt = `
 You classify job postings into two dimensions:
 
-ROLE CATEGORIES:
-- ux_designer
-- frontend_developer
-- frontend_developer_and_software_engineer
-- software_engineer
-- other
+ROLE SCORING (0 to 1, independent):
+- Score roles independently; do NOT force totals to sum to 1.
+- UX Designer: trigger on product designer, ux, ui, interaction, visual design, prototyping, wireframes, design systems.
+- Frontend Developer: require a frontend skill (HTML, CSS, DOM, React, Vue, Angular, Svelte, Next, Remix) AND a UI or browser context. JavaScript alone does not count.
+- Software Engineer: trigger on software engineer, backend, full stack, systems, infrastructure, distributed systems.
+- Other: use only if no other role has meaningful signals.
 
-SENIORITY CATEGORIES:
-- intern
-- entry
-- mid and above
+SENIORITY CLASSIFICATION (must total 1):
+- Intern = listings containing: “intern”, “internship”, “co-op.”
+- Entry = junior, jr, associate, early career, new grad, ≤1 year experience.
+- Mid and above = ANY requirement of 2+ years experience or more, OR senior, staff, lead, principal, manager, director, ownership, mentoring.
 
-Your task:
-1. Score each ROLE from 0 to 1 based on how strongly the job matches.
-2. Score each SENIORITY from 0 to 1.
-3. Write a short AI_SUMMARY of the job description.
-4. Create a list of SKILLS mentioned in the job.
+CRITICAL OVERRIDE (absolute rule):
+- If the posting includes “2+ years,” “3+ years,” “5+ years,” or any experience requirement above 1 year, then the seniority MUST be classified as 100 percent mid_and_above, unless the posting explicitly includes “new grad” or “intern.”
+- This rule overrides ALL other signals. Tone, responsibilities, or generic company boilerplate must be ignored.
+- A job CANNOT be multiple levels at once.
 
-Scoring rules (very important):
-- A score of 1.0 means extremely strong match.
-- A score of 0.5 means ambiguous or partial match.
-- A score below 0.2 means weak match.
-- All scores must be independent — do NOT force them to sum to 1.
+UNKNOWN RULE:
+- Unknown is used only when the description contains zero seniority signals at all (no years, no levels, no junior/senior wording). Otherwise do not use Unknown.
 
-ROLE details:
-- "ux_designer": Triggered by Product Designer, UX Designer, UI UX, Interaction Designer, Visual Designer.
-- "frontend_developer": Must include at least one frontend signal such as HTML, CSS, DOM, UI implementation, browser APIs, or frameworks like React, Vue, Angular, Svelte, Next.js, Remix. 
-  — NOTE: Mentions of “JavaScript” alone DO NOT count as frontend unless tied to UI or browser context.
-- "software_engineer": Triggered by general SWE roles without explicit UI or frontend focus.
-- "other": For roles that do not match any above categories.
+SUMMARY:
+- Write 20 to 50 words describing core responsibilities and impact.
+- Avoid marketing fluff.
 
-SENIORITY details:
-- "intern": internship, intern, co-op.
-- "entry": junior, jr, associate, early career, new grad, less than 2 years, 'all levels'.
-- "mid and above": anything clearly requiring experience beyond entry level.
-
-AI_SUMMARY details:
-- Must be between 30 and 60 words.
-- Example format: "Work as a UX Designer working to create..." or "Work as a Frontend Developer responsible for building..."
-
-SKILLS details:
-- Extract only hard skills that appear verbatim in the job description text.
-- Do NOT guess or infer missing skills.
-- Output an array of plain strings.
+SKILLS:
+- Extract only hard skills that appear verbatim.
+- Max 4.
+- No soft skills.
 
 Output JSON Format (strict):
 {
   "role_scores": {
     "ux_designer": <0 to 1>,
     "frontend_developer": <0 to 1>,
-    "frontend_developer_and_software_engineer": <0 to 1>,
     "software_engineer": <0 to 1>,
     "other": <0 to 1>
   },
@@ -74,9 +57,9 @@ Output JSON Format (strict):
     "intern": <0 to 1>,
     "entry": <0 to 1>,
     "mid and above": <0 to 1>,
-	"unknown": <0 to 1>
+	"unknown": <0 o 1>
   },
-  "ai_summary": "<30 to 60 word summary>",
+  "summary": "<20 to 60 word summary>",
   "skills": [ "<skill1>", "<skill2>", ... ],
 }
 
@@ -89,8 +72,6 @@ CRITICAL:
 
 Do not include anything else besides the JSON object.
 `;
-
-			// - "frontend_developer_and_software_engineer": Only if BOTH frontend and SWE signals are strong.
 
 			const results = [];
 
@@ -105,7 +86,7 @@ Description: ${job.description}
 						{ role: 'system', content: systemPrompt },
 						{ role: 'user', content: userPrompt },
 					],
-					max_tokens: 200,
+					max_tokens: 400,
 				});
 
 				// Extract raw text returned by Cloudflare
@@ -131,7 +112,6 @@ Description: ${job.description}
 						role_scores: {
 							ux_designer: 0,
 							frontend_developer: 0,
-							frontend_developer_and_software_engineer: 0,
 							software_engineer: 0,
 							other: 0,
 						},
@@ -141,7 +121,7 @@ Description: ${job.description}
 							'mid and above': 0,
 							unknown: 0,
 						},
-						ai_summary: '',
+						summary: '',
 						skills: [],
 					};
 				}

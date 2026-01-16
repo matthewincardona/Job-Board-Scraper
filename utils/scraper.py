@@ -2,6 +2,7 @@ import pandas as pd
 from jobspy import scrape_jobs
 from datetime import datetime
 import time
+import hashlib
 
 QUERIES = [
     'product designer',
@@ -10,7 +11,7 @@ QUERIES = [
     'interaction designer',
     'visual designer',
     'frontend developer',
-    'software engineer',
+    'software engineer (javascript OR typescript OR react OR nodejs OR node OR html)',
     'full stack',
     'ux engineer',
     'ui engineer',
@@ -18,6 +19,20 @@ QUERIES = [
 ]
 
 SITES = ["linkedin", "indeed"]
+
+def normalize(x):
+    """Safe normalize function for dedup fields."""
+    if pd.isna(x):
+        return ""
+    return str(x).strip().lower()
+
+def make_unique_id(row):
+    title = normalize(row.get("job_title", ""))
+    company = normalize(row.get("company_name", ""))
+    location = normalize(row.get("location", ""))
+
+    raw = f"{title}|{company}|{location}"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 def scrape_all_jobs():
     all_jobs = []
@@ -51,16 +66,23 @@ def scrape_all_jobs():
             except Exception as e:
                 print(f"✗ Error: {e}")
                 continue
-    
+            
     if not all_jobs:
         return pd.DataFrame()
     
     df = pd.concat(all_jobs, ignore_index=True)
-    
-    # Deduplicate by URL
-    if 'job_url' in df.columns:
-        before = len(df)
-        df.drop_duplicates(subset=['job_url'], keep='first', inplace=True)
-        print(f"\nDeduped: {before} → {len(df)}")
-    
+
+    # -------------------------------------------
+    # CREATE UNIQUE ID for deduping
+    # -------------------------------------------
+    # Some jobspy datasets use `job_title`, some use `title`.
+    if "job_title" not in df.columns and "title" in df.columns:
+        df["job_title"] = df["title"]
+
+    df["unique_id"] = df.apply(make_unique_id, axis=1)
+
+    before = len(df)
+    df.drop_duplicates(subset=["unique_id"], keep="first", inplace=True)
+    print(f"\nDeduped: {before} → {len(df)} by unique_id (title + company + location)")
+
     return df

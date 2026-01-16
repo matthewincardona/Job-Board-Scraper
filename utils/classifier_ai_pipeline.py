@@ -5,7 +5,7 @@ from typing import List, Dict
 
 WORKER_URL = "http://127.0.0.1:8787/"  # your Worker URL
 BATCH_SIZE = 10
-DESCRIPTION_WORD_LIMIT = 300  # truncate descriptions to ~300 words
+DESCRIPTION_WORD_LIMIT = 400  # truncate descriptions to ~400 words
 
 
 # -------------------------------------------
@@ -67,14 +67,16 @@ def classify_jobs_ai(df: pd.DataFrame, batch_size: int = BATCH_SIZE, verbose=Tru
 
             # Process each job result
             for r in data["results"]:
-                role_scores = r.get("role_scores", {})
-                seniority_scores = r.get("seniority_scores", {})
+                role_scores = r.get("role") or r.get("role_scores") or {}
+                seniority_scores = r.get("seniority_scores") or {}
+                skills = r.get("skills") or []
+                summary = r.get("summary") or ""
 
                 results.append({
                     "role_scores": role_scores,
                     "seniority_scores": seniority_scores,
-                    "ux_category": choose_top_scoring(role_scores, "other"),
-                    "seniority": choose_top_scoring(seniority_scores, "unknown"),
+                    "skills": skills,
+                    "summary": summary,
                 })
 
             if verbose:
@@ -86,8 +88,8 @@ def classify_jobs_ai(df: pd.DataFrame, batch_size: int = BATCH_SIZE, verbose=Tru
                 {
                     "role_scores": {},
                     "seniority_scores": {},
-                    "ux_category": "other",
-                    "seniority": "unknown"
+                    "skills": [],
+                    "summary": "",
                 }
             ] * len(payload))
 
@@ -98,14 +100,14 @@ def classify_jobs_ai(df: pd.DataFrame, batch_size: int = BATCH_SIZE, verbose=Tru
             results.append({
                 "role_scores": {},
                 "seniority_scores": {},
-                "ux_category": "other",
-                "seniority": "unknown"
+                "skills": [],
+                "summary": "",
             })
 
     # Apply results to dataframe
     df["role_scores"] = [json.dumps(r["role_scores"]) for r in results]
     df["seniority_scores"] = [json.dumps(r["seniority_scores"]) for r in results]
-    df["ux_category"] = [r["ux_category"] for r in results]
-    df["seniority"] = [r["seniority"] for r in results]
+    df["skills"] = [json.dumps(r["skills"]) for r in results]
+    df["summary"] = [r["summary"] for r in results]
 
     return df
