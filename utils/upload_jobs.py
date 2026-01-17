@@ -13,7 +13,7 @@ key = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
 
 
-def safe_json_load(value):
+def safe_json_load_dict(value):
     """
     Convert a CSV string like "{...}" into a Python dict.
     Returns {} if parsing fails.
@@ -21,9 +21,23 @@ def safe_json_load(value):
     if not value:
         return {}
     try:
-        return json.loads(value)
-    except:
+        data = json.loads(value)
+        return data if isinstance(data, dict) else {}
+    except (json.JSONDecodeError, TypeError):
         return {}
+
+def safe_json_load_list(value):
+    """
+    Convert a CSV string like "[...]" into a Python list.
+    Returns [] if parsing fails.
+    """
+    if not value:
+        return []
+    try:
+        data = json.loads(value)
+        return data if isinstance(data, list) else []
+    except (json.JSONDecodeError, TypeError):
+        return []
 
 
 def transform_row(row):
@@ -53,10 +67,11 @@ def transform_row(row):
     description = clean_markdown(row["description"])
 
     # -------------------
-    # Convert scores (JSON strings → dict)
+    # Convert scores and skills (JSON strings → dict/list)
     # -------------------
-    role_scores = safe_json_load(row.get("role_scores"))
-    seniority_scores = safe_json_load(row.get("seniority_scores"))
+    role_scores = safe_json_load_dict(row.get("role_scores"))
+    seniority_scores = safe_json_load_dict(row.get("seniority_scores"))
+    skills = safe_json_load_list(row.get("skills"))
 
     # -------------------
     # Return clean dict
@@ -70,11 +85,10 @@ def transform_row(row):
         "description_md": description,
         "job_url": row.get("job_url") or None,
         "job_url_direct": row.get("job_url_direct") or None,
-
-        # NEW JSON score fields (jsonb in Supabase)
         "role_scores": role_scores,
         "seniority_scores": seniority_scores,
-
+        "skills": skills,
+        "summary": row.get("summary"),
         "date_posted": posted_at_str,
     }
 
