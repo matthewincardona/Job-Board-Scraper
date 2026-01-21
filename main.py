@@ -3,6 +3,7 @@ import sys
 import pandas as pd
 from datetime import datetime
 from utils.scraper import scrape_all_jobs
+from utils.classifier import classify_and_filter_jobs
 from utils.markdown_cleaner import clean_markdown
 from utils.classifier_ai_pipeline import classify_jobs_ai
 from utils.upload_jobs import upload_jobs_from_csv
@@ -52,9 +53,19 @@ def main():
         except Exception as e:
             print(f"✗ Scraping failed: {e}")
             return
+            
+    # -------------------------
+    # Step 2 — Filter by title
+    # -------------------------
+    try:
+        print("\nFiltering by title...")
+        scraped = classify_and_filter_jobs(scraped)
+    except Exception as e:
+        print(f"✗ Filtering failed: {e}")
+        return
 
     # -------------------------
-    # Step 2 — Clean Markdown
+    # Step 3 — Clean Markdown
     # -------------------------
     try:
         print("\nCleaning markdown...")
@@ -65,7 +76,7 @@ def main():
         return
 
     # -------------------------
-    # Step 3 — Classify using AI Worker
+    # Step 4 — Classify using AI Worker
     # -------------------------
     try:
         print("\nClassifying jobs with AI Worker...")
@@ -78,7 +89,7 @@ def main():
         return
 
     # -------------------------
-    # Step 4 — Deduplicate
+    # Step 5 — Deduplicate
     # -------------------------
     try:
         print("\nDeduplicating...")
@@ -97,7 +108,7 @@ def main():
         return
 
     # -------------------------
-    # Step 5 — Upload to Supabase
+    # Step 6 — Upload to Supabase
     # -------------------------
     try:
         print("\nUploading to Supabase...")
