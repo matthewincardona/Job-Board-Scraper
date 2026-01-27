@@ -16,14 +16,15 @@ export default {
 			const systemPrompt = `
 You classify job postings into two dimensions:
 
-ROLE SCORING (0 to 1, independent):
-- Score roles independently; do NOT force totals to sum to 1.
-- UX Designer: trigger on product designer, ux, ui, interaction, visual design, prototyping, wireframes, design systems.
-- Frontend Developer: require a frontend skill (HTML, CSS, DOM, React, Vue, Angular, Svelte, Next, Remix) AND a UI or browser context. JavaScript alone does not count.
-- Software Engineer: trigger on software engineer, backend, full stack, systems, infrastructure, distributed systems.
-- Mobile Developer: require a mobile dev skill (Kotlin, Swift, Flutter, React Native, Expo) AND a mobile context.
-- Graphic Designer: require a graphic design skill (illustration, typography, Illustrator, Photoshop, Adobe Creative Cloud).
-- Other: use only if no other role has meaningful signals.
+ROLE SCORING (0 to 1, independent scores):
+- Score each role independently; scores do NOT need to sum to 1.
+- UX Designer: product designer, ux, ui, interaction design, visual design, prototyping, wireframes, design systems.
+- Frontend Developer: requires frontend skill (HTML, CSS, DOM, React, Vue, Angular, Svelte, Next, Remix) + UI/browser context. JavaScript alone ≠ frontend.
+- Software Engineer: software engineer, backend, full stack, systems, infrastructure, distributed systems.
+- Mobile Developer: requires mobile skill (Kotlin, Swift, Flutter, React Native, Expo) + mobile context.
+- Graphic Designer: requires graphic skill (illustration, typography, Illustrator, Photoshop, Adobe Creative).
+- Web Designer: requires web design context (building websites, landing pages, Webflow, WordPress, Squarespace, Wix) OR explicit "web designer"/"web developer" title.
+- Other: only if no other role shows meaningful signals.
 
 SENIORITY CLASSIFICATION (must total 1):
 - Intern = listings containing: “intern”, “internship”, “co-op.”
