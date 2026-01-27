@@ -1,7 +1,7 @@
 export default {
 	async fetch(
 		request: { json: () => PromiseLike<{ jobs: any }> | { jobs: any } },
-		env: { AI: { run: (arg0: string, arg1: { messages: { role: string; content: string }[]; max_tokens: number }) => any } }
+		env: { AI: { run: (arg0: string, arg1: { messages: { role: string; content: string }[]; max_tokens: number }) => any } },
 	) {
 		try {
 			const { jobs } = await request.json();
@@ -57,7 +57,7 @@ Output JSON Format (strict):
     "intern": <0 to 1>,
     "entry": <0 to 1>,
     "mid and above": <0 to 1>,
-	"unknown": <0 o 1>
+	"unknown": <0 to 1>
   },
   "summary": "<20 to 60 word summary>",
   "skills": [ "<skill1>", "<skill2>", ... ],
