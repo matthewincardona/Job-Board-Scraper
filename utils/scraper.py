@@ -7,15 +7,16 @@ import hashlib
 QUERIES = [
     'product designer',
     'ux designer',
-    'ui designer',
     'interaction designer',
     'visual designer',
     'frontend developer',
     'software engineer (javascript OR typescript OR react OR nodejs OR node OR html)',
     'full stack',
     'ux engineer',
-    'ui engineer',
     'ui developer',
+    'mobile developer',
+    'graphic designer',
+    'illustrator'
 ]
 
 # Major tech hubs
