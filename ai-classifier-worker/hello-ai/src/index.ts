@@ -1,7 +1,7 @@
 export default {
 	async fetch(
 		request: { json: () => PromiseLike<{ jobs: any }> | { jobs: any } },
-		env: { AI: { run: (arg0: string, arg1: { messages: { role: string; content: string }[]; max_tokens: number }) => any } }
+		env: { AI: { run: (arg0: string, arg1: { messages: { role: string; content: string }[]; max_tokens: number }) => any } },
 	) {
 		try {
 			const { jobs } = await request.json();
@@ -21,6 +21,8 @@ ROLE SCORING (0 to 1, independent):
 - UX Designer: trigger on product designer, ux, ui, interaction, visual design, prototyping, wireframes, design systems.
 - Frontend Developer: require a frontend skill (HTML, CSS, DOM, React, Vue, Angular, Svelte, Next, Remix) AND a UI or browser context. JavaScript alone does not count.
 - Software Engineer: trigger on software engineer, backend, full stack, systems, infrastructure, distributed systems.
+- Mobile Developer: require a mobile dev skill (Kotlin, Swift, Flutter, React Native, Expo) AND a mobile context.
+- Graphic Designer: require a graphic design skill (illustration, typography, Illustrator, Photoshop, Adobe Creative Cloud).
 - Other: use only if no other role has meaningful signals.
 
 SENIORITY CLASSIFICATION (must total 1):
@@ -39,6 +41,7 @@ UNKNOWN RULE:
 SUMMARY:
 - Write 20 to 50 words describing core responsibilities and impact.
 - Avoid marketing fluff.
+- Always start with "Work as a...".
 
 SKILLS:
 - Extract only hard skills that appear verbatim.
@@ -51,6 +54,8 @@ Output JSON Format (strict):
     "ux_designer": <0 to 1>,
     "frontend_developer": <0 to 1>,
     "software_engineer": <0 to 1>,
+	"mobile_developer": <0 to 1>,
+	"graphic_designer": <0 to 1>,
     "other": <0 to 1>
   },
   "seniority_scores": {
