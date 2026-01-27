@@ -4,7 +4,7 @@ import json
 from typing import List, Dict
 import os
 
-WORKER_URL = "http://127.0.0.1:8787/"  # your Worker URL
+WORKER_URL = os.getenv("AI_CLASSIFIER_URL")  # set to 'http://127.0.0.1:8787/' to use a local worker
 BATCH_SIZE = 10
 DESCRIPTION_WORD_LIMIT = 400  # truncate descriptions to ~400 words
 
