@@ -18,6 +18,20 @@ QUERIES = [
     'ui developer',
 ]
 
+# Major tech hubs
+LOCATIONS = [
+    "New York, NY",
+    "Seattle, WA",
+    "San Francisco, CA",
+    "San Jose, CA",
+    "Austin, TX",
+    "Boston, MA",
+    "Los Angeles, CA",
+    "Chicago, IL",
+    "Denver, CO",
+    "Redmond, WA"
+]
+
 SITES = ["linkedin", "indeed"]
 
 def normalize(x):
@@ -38,34 +52,36 @@ def scrape_all_jobs():
     all_jobs = []
     
     for site in SITES:
-        for q in QUERIES:
-            try:
-                print(f"\n[{site.upper()}] Scraping: '{q}'...", end=" ")
-                
-                jobs = scrape_jobs(
-                    site_name=[site],
-                    search_term=q,  # No quotes, no negatives
-                    location="New York, NY",  # Full name
-                    country_indeed='USA',
-                    distance=50,
-                    results_wanted=250,  # Increased
-                    hours_old=720,
-                    linkedin_fetch_description=True if site == "linkedin" else False,
-                )
-                
-                count = len(jobs) if jobs is not None and not jobs.empty else 0
-                print(f"✓ {count} jobs")
-                
-                if jobs is not None and not jobs.empty:
-                    jobs['scraped_at'] = datetime.now().isoformat()
-                    jobs['source_query'] = q
-                    all_jobs.append(jobs)
-                
-                time.sleep(2)  # Rate limiting protection
-                    
-            except Exception as e:
-                print(f"✗ Error: {e}")
-                continue
+        for location in LOCATIONS:
+            for q in QUERIES:
+                try:
+                    print(f"\n[{site.upper()}] {location} : '{q}'...", end=" ")
+
+                    jobs = scrape_jobs(
+                        site_name=[site],
+                        search_term=q,
+                        location=location,
+                        country_indeed="USA",
+                        distance=50,
+                        results_wanted=250,
+                        hours_old=720,
+                        linkedin_fetch_description=True if site == "linkedin" else False,
+                    )
+
+                    count = len(jobs) if jobs is not None and not jobs.empty else 0
+                    print(f"✓ {count} jobs")
+
+                    if jobs is not None and not jobs.empty:
+                        jobs["scraped_at"] = datetime.now().isoformat()
+                        jobs["source_query"] = q
+                        jobs["source_location"] = location
+                        all_jobs.append(jobs)
+
+                    time.sleep(2) # Rate limiting protection
+
+                except Exception as e:
+                    print(f"✗ Error: {e}")
+                    continue
             
     if not all_jobs:
         return pd.DataFrame()
@@ -86,3 +102,4 @@ def scrape_all_jobs():
     print(f"\nDeduped: {before} → {len(df)} by unique_id (title + company + location)")
 
     return df
+
