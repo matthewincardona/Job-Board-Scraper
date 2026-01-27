@@ -17,6 +17,7 @@ QUERIES = [
     'mobile developer',
     'graphic designer',
     'illustrator'
+    'web designer'
 ]
 
 # Major tech hubs

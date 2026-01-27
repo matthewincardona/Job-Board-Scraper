@@ -2,6 +2,7 @@ import pandas as pd
 import requests
 import json
 from typing import List, Dict
+import os
 
 WORKER_URL = "http://127.0.0.1:8787/"  # your Worker URL
 BATCH_SIZE = 10
@@ -110,4 +111,32 @@ def classify_jobs_ai(df: pd.DataFrame, batch_size: int = BATCH_SIZE, verbose=Tru
     df["skills"] = [json.dumps(r["skills"]) for r in results]
     df["summary"] = [r["summary"] for r in results]
 
-    return df
+    # Filter out 'mid and above' jobs
+    def is_mid_and_above(scores_str):
+        try:
+            scores = json.loads(scores_str)
+            # Normalize key for safety
+            scores = {k.lower().strip(): v for k, v in scores.items()}
+            return scores.get('mid and above', 0) == 1
+        except (json.JSONDecodeError, AttributeError):
+            return False
+
+    discard_mask = df['seniority_scores'].apply(is_mid_and_above)
+    discarded_df = df[discard_mask].copy()
+    kept_df = df[~discard_mask].copy()
+
+    if not discarded_df.empty:
+        output_path = 'ai-discarded_jobs.csv'
+        if verbose:
+            print(f"Saving {len(discarded_df)} discarded jobs to {output_path}...")
+        try:
+            # Append to the CSV if it exists, otherwise create it
+            header = not os.path.exists(output_path)
+            discarded_df.to_csv(output_path, mode='a', header=header, index=False)
+        except Exception as e:
+            print(f"⚠️ Failed to save discarded jobs: {e}")
+
+    if verbose:
+        print(f"Returning {len(kept_df)} jobs to be saved.")
+
+    return kept_df

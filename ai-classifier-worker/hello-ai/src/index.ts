@@ -74,6 +74,7 @@ CRITICAL:
 - Do not use markdown
 - Do not add explanation outside the JSON
 - Begin your answer with '{' and end with '}'
+- String values must not contain newlines. All text must be on a single line.
 
 Do not include anything else besides the JSON object.
 `;
@@ -91,7 +92,7 @@ Description: ${job.description}
 						{ role: 'system', content: systemPrompt },
 						{ role: 'user', content: userPrompt },
 					],
-					max_tokens: 400,
+					max_tokens: 800,
 				});
 
 				// Extract raw text returned by Cloudflare
@@ -104,6 +105,9 @@ Description: ${job.description}
 					.replace(/^```/, '')
 					.replace(/```$/, '')
 					.trim();
+
+				// Aggressively remove newlines to handle invalid JSON from the model
+				raw = raw.replace(/(\r\n|\n|\r)/gm, '');
 
 				let parsed;
 
