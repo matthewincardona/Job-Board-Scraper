@@ -10,15 +10,6 @@ DESCRIPTION_WORD_LIMIT = 400  # truncate descriptions to ~400 words
 
 
 # -------------------------------------------
-# Choose highest scoring key
-# -------------------------------------------
-def choose_top_scoring(scores: Dict[str, float], fallback: str) -> str:
-    if not scores:
-        return fallback
-    return max(scores.items(), key=lambda x: x[1])[0]
-
-
-# -------------------------------------------
 # Truncate job description
 # -------------------------------------------
 def truncate_description(text: str, limit: int = DESCRIPTION_WORD_LIMIT) -> str:
