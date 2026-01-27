@@ -3,6 +3,9 @@ import requests
 import json
 from typing import List, Dict
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 WORKER_URL = os.getenv("AI_CLASSIFIER_URL")  # set to 'http://127.0.0.1:8787/' to use a local worker
 BATCH_SIZE = 10
