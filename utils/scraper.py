@@ -16,7 +16,7 @@ QUERIES = [
     'ui developer',
     'mobile developer',
     'graphic designer',
-    'illustrator'
+    'illustrator',
     'web designer'
 ]
 
