@@ -6,7 +6,7 @@ from utils.scraper import scrape_all_jobs
 from utils.classifier import classify_and_filter_jobs
 from utils.markdown_cleaner import clean_markdown
 from utils.classifier_ai_pipeline import classify_jobs_ai
-from utils.upload_jobs import upload_jobs_from_csv
+from utils.upload_jobs import upload_jobs_from_csv, get_existing_job_ids, upload_unclassified_jobs_df
 
 
 def main():
@@ -29,7 +29,6 @@ def main():
         scraped = pd.read_csv(last_raw)
         print(f"✓ Loaded {len(scraped)} jobs from {last_raw}")
 
-        # no need to save again
     else:
         try:
             print("Starting scrape...")
@@ -53,34 +52,66 @@ def main():
         except Exception as e:
             print(f"✗ Scraping failed: {e}")
             return
-            
+
     # -------------------------
-    # Step 2 — Filter by title
+    # Step 2 — Separate new and existing jobs
     # -------------------------
     try:
-        print("\nFiltering by title...")
-        scraped = classify_and_filter_jobs(scraped)
+        print("\nSeparating new and existing jobs...")
+        existing_job_ids = get_existing_job_ids()
+        
+        new_jobs = scraped[~scraped['id'].isin(existing_job_ids)]
+        existing_jobs = scraped[scraped['id'].isin(existing_job_ids)]
+        
+        print(f"✓ Found {len(new_jobs)} new jobs and {len(existing_jobs)} existing jobs.")
+
+    except Exception as e:
+        print(f"✗ Failed to separate jobs: {e}")
+        return
+
+    # -------------------------
+    # Step 3 — Update existing jobs
+    # -------------------------
+    if not existing_jobs.empty:
+        try:
+            print("\nUpdating existing jobs in Supabase...")
+            upload_unclassified_jobs_df(existing_jobs)
+            print(f"✓ Updated {len(existing_jobs)} existing jobs.")
+        except Exception as e:
+            print(f"✗ Failed to update existing jobs: {e}")
+            # Non-fatal, we can continue with the new jobs
+    
+    # -------------------------
+    # Step 4 — Filter by title
+    # -------------------------
+    if new_jobs.empty:
+        print("\nNo new jobs to process. Exiting.")
+        return
+        
+    try:
+        print("\nFiltering new jobs by title...")
+        classified = classify_and_filter_jobs(new_jobs)
     except Exception as e:
         print(f"✗ Filtering failed: {e}")
         return
 
     # -------------------------
-    # Step 3 — Clean Markdown
+    # Step 5 — Clean Markdown
     # -------------------------
     try:
         print("\nCleaning markdown...")
-        scraped["description"] = scraped["description"].fillna("").apply(clean_markdown)
-        print(f"✓ Cleaned {len(scraped)} descriptions")
+        classified["description"] = classified["description"].fillna("").apply(clean_markdown)
+        print(f"✓ Cleaned {len(classified)} descriptions")
     except Exception as e:
         print(f"✗ Cleaning failed: {e}")
         return
 
     # -------------------------
-    # Step 4 — Classify using AI Worker
+    # Step 6 — Classify using AI Worker
     # -------------------------
     try:
         print("\nClassifying jobs with AI Worker...")
-        classified = classify_jobs_ai(scraped, batch_size=10)
+        classified = classify_jobs_ai(classified, batch_size=10)
 
         print(f"✓ Classified {len(classified)} jobs")
 
@@ -89,7 +120,7 @@ def main():
         return
 
     # -------------------------
-    # Step 5 — Deduplicate
+    # Step 7 — Deduplicate
     # -------------------------
     try:
         print("\nDeduplicating...")
@@ -108,7 +139,7 @@ def main():
         return
 
     # -------------------------
-    # Step 6 — Upload to Supabase
+    # Step 8 — Upload to Supabase
     # -------------------------
     try:
         print("\nUploading to Supabase...")

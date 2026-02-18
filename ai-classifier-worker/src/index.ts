@@ -40,9 +40,8 @@ UNKNOWN RULE:
 - Unknown is used only when the description contains zero seniority signals at all (no years, no levels, no junior/senior wording). Otherwise do not use Unknown.
 
 SUMMARY:
-- Write 20 to 50 words describing core responsibilities and impact.
+- Write 20 to 40 words describing core responsibilities and impact.
 - Avoid marketing fluff.
-- Always start with "Work as a...".
 
 SKILLS:
 - Extract only hard skills that appear verbatim.

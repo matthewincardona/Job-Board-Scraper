@@ -60,6 +60,9 @@ def classify_jobs_ai(df: pd.DataFrame, batch_size: int = BATCH_SIZE, verbose=Tru
             if "results" not in data:
                 raise ValueError(f"No 'results' returned from Worker: {data}")
 
+            if len(data["results"]) != len(payload):
+                raise ValueError(f"Worker returned {len(data['results'])} results, expected {len(payload)}")
+
             # Process each job result
             for r in data["results"]:
                 role_scores = r.get("role") or r.get("role_scores") or {}
@@ -120,7 +123,7 @@ def classify_jobs_ai(df: pd.DataFrame, batch_size: int = BATCH_SIZE, verbose=Tru
     kept_df = df[~discard_mask].copy()
 
     if not discarded_df.empty:
-        output_path = 'ai-discarded_jobs.csv'
+        output_path = 'jobs/ai-discarded_jobs.csv'
         if verbose:
             print(f"Saving {len(discarded_df)} discarded jobs to {output_path}...")
         try:

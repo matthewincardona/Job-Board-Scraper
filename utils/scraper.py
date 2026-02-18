@@ -96,12 +96,14 @@ def scrape_all_jobs():
     # Some jobspy datasets use `job_title`, some use `title`.
     if "job_title" not in df.columns and "title" in df.columns:
         df["job_title"] = df["title"]
+    if "company_name" not in df.columns and "company" in df.columns:
+        df["company_name"] = df["company"]
 
     df["unique_id"] = df.apply(make_unique_id, axis=1)
+    df["id"] = df["unique_id"]
 
     before = len(df)
-    df.drop_duplicates(subset=["unique_id"], keep="first", inplace=True)
+    df.drop_duplicates(subset=["id"], keep="first", inplace=True)
     print(f"\nDeduped: {before} → {len(df)} by unique_id (title + company + location)")
 
     return df
-
