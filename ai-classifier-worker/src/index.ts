@@ -33,6 +33,7 @@ SENIORITY CLASSIFICATION (must total 1):
 
 CRITICAL OVERRIDE (absolute rule):
 - If the posting includes “2+ years,” “3+ years,” “5+ years,” or any experience requirement above 1 year, then the seniority MUST be classified as 100 percent mid_and_above, unless the posting explicitly includes “new grad” or “intern.”
+- If the posting includes "intern", "internship", "co-op", or "coop" in the title specifically, then the seniority MUST be classified as 100 percent intern.
 - This rule overrides ALL other signals. Tone, responsibilities, or generic company boilerplate must be ignored.
 - A job CANNOT be multiple levels at once.
 
